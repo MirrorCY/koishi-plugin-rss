@@ -14,18 +14,22 @@ declare module 'koishi' {
 const logger = new Logger('rss')
 
 export const name = 'RSS'
-export const using = ['database'] as const
+export const inject = ['database'] as const
 
 export interface Config {
   timeout?: number
   refresh?: number
   userAgent?: string
+  parserFn?: string
 }
 
 export const Config: Schema<Config> = Schema.object({
   timeout: Schema.number().description('请求数据的最长时间。').default(Time.second * 10),
   refresh: Schema.number().description('刷新数据的时间间隔。').default(Time.minute),
   userAgent: Schema.string().description('请求时使用的 User Agent。'),
+  parserFn: Schema.string().description('解析数据的函数。')
+    .role('textarea')
+    .default('return `${payload.meta.title} (${payload.author}) \n${payload.title} \n${payload.link} \n${payload.description}`'),
 })
 
 export function apply(ctx: Context, config: Config) {
@@ -33,9 +37,10 @@ export function apply(ctx: Context, config: Config) {
     rss: 'list',
   })
 
-  const { timeout, refresh, userAgent } = config
+  const { timeout, refresh, userAgent, parserFn } = config
   const feedMap: Record<string, Set<string>> = {}
   const feeder = new RssFeedEmitter({ skipFirstLoad: true, userAgent })
+  const parser = new Function('payload', parserFn)
 
   function subscribe(url: string, guildId: string) {
     if (url in feedMap) {
@@ -68,7 +73,7 @@ export function apply(ctx: Context, config: Config) {
     logger.debug('receive', payload.title)
     const source = payload.meta.link
     if (!feedMap[source]) return
-    const message = `${payload.meta.title} (${payload.author})\n${payload.title}`
+    const message = parser(payload)
     await ctx.broadcast([...feedMap[source]], message)
   })
 
@@ -105,11 +110,12 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.guild()
     .command('rss <url:text>', '订阅 RSS 链接')
-    .channelFields(['rss', 'id'])
+    .channelFields(['rss', 'id', 'platform'])
     .option('list', '-l 查看订阅列表')
     .option('remove', '-r 取消订阅')
     .action(async ({ session, options }, url) => {
-      const { rss, id } = session.channel
+      const { rss, id, platform } = session.channel
+
       if (options.list) {
         if (!rss.length) return '未订阅任何链接。'
         return rss.join('\n')
@@ -120,13 +126,13 @@ export function apply(ctx: Context, config: Config) {
       if (options.remove) {
         if (index < 0) return '未订阅此链接。'
         rss.splice(index, 1)
-        unsubscribe(url, id)
+        unsubscribe(url, `${platform}:${id}`)
         return '取消订阅成功！'
       }
 
       if (index >= 0) return '已订阅此链接。'
       return validate(url, session).then(() => {
-        subscribe(url, id)
+        subscribe(url, `${platform}:${id}`)
         if (!rss.includes(url)) {
           rss.push(url)
           return '添加订阅成功！'
