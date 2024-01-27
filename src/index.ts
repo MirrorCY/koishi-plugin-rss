@@ -30,15 +30,11 @@ export const Config: Schema<Config> = Schema.object({
   parserFn: Schema.string().description('解析数据的函数。')
     .role('textarea')
     .default(
-      [
-        'let description = payload.description.split("</aside>").pop()',
-        'description = description.replace(/<img([^>]*)>/gi, "<img$1 />")',
-        'description = description.replace(/<br([^>]*)>/gi, "<br$1 />")',
-        'return `${payload.meta.title} (${payload.author})',
-        '${payload.title}',
-        '${payload.link}',
-        '${description}`'
-      ].join('\n')
+      `const description = payload.description
+      .replace(/<aside[^>]*>[\\s\\S]*?<\\/aside>/g, '') // 删除引用内容
+      .replace(/<img([^>]*)>/gi, "<img$1 />") // 闭合 <img> 标签
+      .replace(/<br([^>]*)>/gi, "<br$1 />"); // 闭合 <br> 标签
+      \nreturn \`\${payload.meta.title} (\${payload.author})\n\${payload.title}\n\${payload.link}\n\${description}\``
     ),
 })
 
