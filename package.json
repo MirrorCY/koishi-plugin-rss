@@ -1,7 +1,7 @@
 {
-  "name": "koishi-plugin-rss",
-  "description": "Subscribe RSS Url for Koishi",
-  "version": "3.0.0",
+  "name": "koishi-plugin-rss-discourse",
+  "description": "42 自用的论坛新帖订阅，可自定义解析内容。",
+  "version": "0.0.3",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -9,17 +9,18 @@
   ],
   "author": "undefined <masnn0@outlook.com>",
   "maintainers": [
-    "Shigma <shigma10826@gmail.com>"
+    "Shigma <shigma10826@gmail.com>",
+    "MirrorCY <42@koishi.chat>"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/koishijs/koishi-plugin-rss.git"
+    "url": "git+https://github.com/MirrorCY/koishi-plugin-rss.git"
   },
   "bugs": {
-    "url": "https://github.com/koishijs/koishi-plugin-rss/issues"
+    "url": "https://github.com/MirrorCY/koishi-plugin-rss/issues"
   },
-  "homepage": "https://github.com/koishijs/koishi-plugin-rss",
+  "homepage": "https://github.com/MirrorCY/koishi-plugin-rss",
   "keywords": [
     "bot",
     "qqbot",
@@ -35,6 +36,6 @@
     "koishi": "^4.1.1"
   },
   "dependencies": {
-    "rss-feed-emitter": "^3.2.2"
+    "rss-feed-emitter": "^3.2.3"
   }
 }
