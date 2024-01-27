@@ -29,7 +29,15 @@ export const Config: Schema<Config> = Schema.object({
   userAgent: Schema.string().description('请求时使用的 User Agent。'),
   parserFn: Schema.string().description('解析数据的函数。')
     .role('textarea')
-    .default('return `${payload.meta.title} (${payload.author}) \n${payload.title} \n${payload.link} \n${payload.description}`'),
+    .default(
+      'let description = payload.description.split("</aside>").pop()' +
+      'description = description.replace(/<img([^>]*)>/gi, "<img$1 />")' +
+      'description = description.replace(/<br([^>]*)>/gi, "<br$1 />")' +
+      'return `${payload.meta.title} (${payload.author})' +
+      '${payload.title}' +
+      '${payload.link}' +
+      '${description}`'
+    ),
 })
 
 export function apply(ctx: Context, config: Config) {
